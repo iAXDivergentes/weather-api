@@ -3,7 +3,7 @@ import requests
 
 app = Flask(__name__)
 
-# Chave da API OpenWeather
+# Chave da API OpenWeather (substituir pela real)
 WEATHER_API_KEY = "93febb167dc2456eb2b16a97178fb847"
 
 def get_weather(city):
