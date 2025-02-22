@@ -3,7 +3,7 @@ import requests
 
 app = Flask(__name__)
 
-# Chave da API OpenWeather (substituir pela real)
+# Chave da API OpenWeather
 WEATHER_API_KEY = "93febb167dc2456eb2b16a97178fb847"
 
 def get_weather(city):
@@ -32,17 +32,18 @@ def get_weather(city):
 @app.route('/')
 def home():
     """ Endpoint para a raiz da API """
-    return jsonify({"mensagem": "API de previsão do tempo está ativa! Use o endpoint /weather para consultar."})
+    return jsonify({"mensagem": "API de previsão do tempo está ativa! Use o endpoint /weather para consultar."}, ensure_ascii=False)
 
 @app.route('/weather', methods=['GET'])
 def weather_info():
     """ Endpoint para obter os dados do clima """
     city = request.args.get('cidade')
+
     if not city:
-        return jsonify({"erro": "Cidade não informada"}), 400
+        return jsonify({"erro": "Cidade não informada"}, ensure_ascii=False), 400
 
     weather = get_weather(city)
-    return jsonify(weather)
+    return jsonify(weather, ensure_ascii=False)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
