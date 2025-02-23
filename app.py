@@ -13,9 +13,8 @@ DOLLAR_API_URL = "https://economia.awesomeapi.com.br/json/last/USD-BRL"
 EURO_API_URL = "https://economia.awesomeapi.com.br/json/last/EUR-BRL"
 BITCOIN_API_URL = "https://economia.awesomeapi.com.br/json/last/BTC-BRL"
 
-# Simulação para commodities (Substituir por API real se disponível)
 def get_commodities():
-    """ Retorna os preços médios das commodities agropecuárias """
+    """ Simulação para commodities agropecuárias (substituir por API real no futuro) """
     return {
         "algodão": "R$ 180,00/ha",
         "milho": "R$ 60,00/saca",
@@ -23,7 +22,7 @@ def get_commodities():
     }
 
 def get_weather(city):
-    """ Obtém os dados climáticos e previsão correta de máxima e mínima """
+    """ Obtém os dados climáticos da cidade com máxima e mínima reais """
     url = f"https://api.openweathermap.org/data/2.5/forecast?q={city},BR&appid={WEATHER_API_KEY}&units=metric&lang=pt"
     response = requests.get(url)
 
@@ -31,7 +30,6 @@ def get_weather(city):
         data = response.json()
         forecast = data['list'][0]  # Pegamos a previsão mais recente
 
-        # Corrigindo máxima e mínima corretamente
         max_temp = max([item['main']['temp_max'] for item in data['list'][:8]])
         min_temp = min([item['main']['temp_min'] for item in data['list'][:8]])
 
@@ -86,7 +84,7 @@ def weather_info():
         "cotação_bitcoin": bitcoin,
         "commodities": commodities,
         "mapa_google": google_maps_link
-    })
+    }, ensure_ascii=False)  # Evita erro de acentuação
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
