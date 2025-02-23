@@ -4,17 +4,17 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# Chaves da API
-WEATHER_API_KEY = "93febb167dc2456eb2b16a97178fb847"  # OpenWeatherMap
-GOOGLE_MAPS_API_KEY = "AIzaSyCE91wNkbAeihp0djs_-qEQfTtLwfOsiTU"  # Google Maps
+# Chaves da API (Variáveis de Ambiente)
+WEATHER_API_KEY = os.getenv("WEATHER_API_KEY", "93febb167dc2456eb2b16a97178fb847")
+GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "AIzaSyCE91wNkbAeihp0djs_-qEQfTtLwfOsiTU")
 
-# URLs para cotações de moedas e Bitcoin
+# URLs para cotações
 DOLLAR_API_URL = "https://economia.awesomeapi.com.br/json/last/USD-BRL"
 EURO_API_URL = "https://economia.awesomeapi.com.br/json/last/EUR-BRL"
 BITCOIN_API_URL = "https://economia.awesomeapi.com.br/json/last/BTC-BRL"
 
 def get_commodities():
-    """ Simulação para commodities agropecuárias (substituir por API real no futuro) """
+    """ Simulação para commodities agropecuárias """
     return {
         "algodão": "R$ 180,00/ha",
         "milho": "R$ 60,00/saca",
@@ -22,32 +22,27 @@ def get_commodities():
     }
 
 def get_weather(city):
-    """ Obtém os dados climáticos da cidade com máxima e mínima reais """
-    url = f"https://api.openweathermap.org/data/2.5/forecast?q={city},BR&appid={WEATHER_API_KEY}&units=metric&lang=pt"
+    """ Obtém os dados climáticos """
+    url = f"https://api.openweathermap.org/data/2.5/weather?q={city},BR&appid={WEATHER_API_KEY}&units=metric&lang=pt"
     response = requests.get(url)
 
     if response.status_code == 200:
         data = response.json()
-        forecast = data['list'][0]  # Pegamos a previsão mais recente
-
-        max_temp = max([item['main']['temp_max'] for item in data['list'][:8]])
-        min_temp = min([item['main']['temp_min'] for item in data['list'][:8]])
-
         return {
-            "cidade": data["city"]["name"],
-            "condição": forecast["weather"][0]["description"].capitalize(),
-            "máxima": f"{max_temp:.1f}°C",
-            "mínima": f"{min_temp:.1f}°C",
-            "sensação térmica": f"{forecast['main']['feels_like']:.1f}°C",
-            "temperatura": f"{forecast['main']['temp']:.1f}°C",
-            "umidade": f"{forecast['main']['humidity']}%",
-            "vento": f"{forecast['wind']['speed']} m/s"
+            "cidade": data["name"],
+            "condição": data["weather"][0]["description"].capitalize(),
+            "temperatura": f"{data['main']['temp']}°C",
+            "sensação térmica": f"{data['main']['feels_like']}°C",
+            "mínima": f"{data['main']['temp_min']}°C",
+            "máxima": f"{data['main']['temp_max']}°C",
+            "umidade": f"{data['main']['humidity']}%",
+            "vento": f"{data['wind']['speed']} m/s"
         }
     else:
         return {"erro": "Não foi possível obter os dados meteorológicos"}
 
 def get_currency_price(api_url, currency_name):
-    """ Obtém a cotação da moeda ou Bitcoin e formata os valores """
+    """ Obtém a cotação da moeda ou Bitcoin """
     response = requests.get(api_url)
     if response.status_code == 200:
         data = response.json()
@@ -56,14 +51,14 @@ def get_currency_price(api_url, currency_name):
     else:
         return {currency_name: "Erro ao obter cotação"}
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def home():
-    """ Endpoint para verificar se a API está ativa """
+    """ Verifica se a API está ativa """
     return jsonify({"mensagem": "API AgroVix está ativa! Use o endpoint /weather para previsão do tempo e /cotacoes para ver as cotações."})
 
 @app.route('/weather', methods=['GET'])
 def weather_info():
-    """ Endpoint para obter os dados do clima + cotação do dólar, euro, bitcoin e commodities """
+    """ Obtém previsão do tempo + cotações """
     city = request.args.get('cidade')
     if not city:
         return jsonify({"erro": "Cidade não informada"}), 400
@@ -74,7 +69,6 @@ def weather_info():
     bitcoin = get_currency_price(BITCOIN_API_URL, "cotação_bitcoin")
     commodities = get_commodities()
 
-    # Link para o Google Maps da cidade
     google_maps_link = f"https://www.google.com/maps/search/?api=1&query={city.replace(' ', '+')},Brasil"
 
     return jsonify({
@@ -87,4 +81,4 @@ def weather_info():
     })
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=10000, debug=True)
